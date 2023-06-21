@@ -98,7 +98,7 @@ class LoadStreams:
             else:
                 print('{} not writable'.format(chunk_str))
 ##############################################################################################
-#########This block manually configures buffer handling - this is key to daemon thread########
+#########This block manually configures buffer handling#######################################
 
         # Retrieve Buffer Handling Mode Information
         handling_mode = PySpin.CEnumerationPtr(s_node_map.GetNode('StreamBufferHandlingMode'))
