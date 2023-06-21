@@ -40,7 +40,6 @@ class LoadStreams:
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
-
 ################################################################################################
         self.system = PySpin.System.GetInstance()
         camera = self.system.GetCameras()[0]
@@ -180,9 +179,7 @@ class LoadStreams:
     def update(self, i, s, camera):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        print("MADE IT TO UPDATE")
-        while camera.IsInitialized():
-
+        while camera.IsInitialized():         
             FlirImage = camera.GetNextImage(1000)
             chunk_data = FlirImage.GetChunkData().GetFrameID()
             if chunk_data % self.vid_stride == 0:
@@ -199,15 +196,14 @@ class LoadStreams:
     def __next__(self):
         """Returns source paths, transformed and original images for processing YOLOv5."""
         self.count += 1
-        if self.key != "q":
-            camera.EndAcquisition()
-            print(camera.IsInitialized())
-            camera.DeInit()
-            del camera
-            cam_list = self.system.GetCameras()
-            cam_list.Clear()
-            self.system.ReleaseInstance()      
-            raise StopIteration
+#        if self.key != "q":
+#            camera.EndAcquisition()
+#            camera.DeInit()
+#            del camera
+#            cam_list = self.system.GetCameras()
+#            cam_list.Clear()
+#            self.system.ReleaseInstance()      
+#            raise StopIteration
         im0 = self.imgs.copy()
         return self.sources, im0, None, ''
 
