@@ -29,7 +29,7 @@ class SourceTypes:
 
 
 class LoadStreams:
-    # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
+    # YOLOv8 streamloader
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
@@ -40,64 +40,174 @@ class LoadStreams:
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
+
+################################################################################################
+        self.system = PySpin.System.GetInstance()
+        camera = self.system.GetCameras()[0]
+        #Initiate camera object
+        camera.Init()
+
+        #Transport layer device nodemap
+        s_node_map = camera.GetTLStreamNodeMap()
+
+        #Device nodemap
+        nodemap = camera.GetNodeMap()
+################################################################################################
+################This block activates chunk mode which will be used to grab framecount metadata##
+
+        chunk_mode_active = PySpin.CBooleanPtr(nodemap.GetNode('ChunkModeActive'))
+
+        if PySpin.IsWritable(chunk_mode_active):
+            chunk_mode_active.SetValue(True)
+
+        print('Chunk mode activated...')
+
+        # Enable all types of chunk data
+        chunk_selector = PySpin.CEnumerationPtr(nodemap.GetNode('ChunkSelector'))
+
+        if not PySpin.IsReadable(chunk_selector) or not PySpin.IsWritable(chunk_selector):
+            print('Unable to retrieve chunk selector. Aborting...\n')
+            return False
+
+        # Retrieve entries
+        entries = [PySpin.CEnumEntryPtr(chunk_selector_entry) for chunk_selector_entry in chunk_selector.GetEntries()]
+
+        print('Enabling entries...')
+
+        # Iterate through our list and select each entry node to enable
+        for chunk_selector_entry in entries:
+            # Go to next node if problem occurs
+            if not PySpin.IsReadable(chunk_selector_entry):
+                continue
+
+            chunk_selector.SetIntValue(chunk_selector_entry.GetValue())
+
+            chunk_str = '\t {}:'.format(chunk_selector_entry.GetSymbolic())
+
+            # Retrieve corresponding boolean
+            chunk_enable = PySpin.CBooleanPtr(nodemap.GetNode('ChunkEnable'))
+
+            # Enable the boolean, thus enabling the corresponding chunk data
+            if not PySpin.IsAvailable(chunk_enable):
+                print('{} not available'.format(chunk_str))
+            elif chunk_enable.GetValue() is True:
+                print('{} enabled'.format(chunk_str))
+            elif PySpin.IsWritable(chunk_enable):
+                chunk_enable.SetValue(True)
+                print('{} enabled'.format(chunk_str))
+            else:
+                print('{} not writable'.format(chunk_str))
+##############################################################################################
+#########This block manually configures buffer handling - this is key to daemon thread########
+
+        # Retrieve Buffer Handling Mode Information
+        handling_mode = PySpin.CEnumerationPtr(s_node_map.GetNode('StreamBufferHandlingMode'))
+        if not PySpin.IsAvailable(handling_mode) or not PySpin.IsWritable(handling_mode):
+            print('Unable to set Buffer Handling mode (node retrieval). Aborting...\n')
+            
+        handling_mode_entry = PySpin.CEnumEntryPtr(handling_mode.GetCurrentEntry())
+        if not PySpin.IsAvailable(handling_mode_entry) or not PySpin.IsReadable(handling_mode_entry):
+            print('Unable to set Buffer Handling mode (Entry retrieval). Aborting...\n')
+
+        # Set stream buffer Count Mode to manual
+        stream_buffer_count_mode = PySpin.CEnumerationPtr(s_node_map.GetNode('StreamBufferCountMode'))
+        if not PySpin.IsAvailable(stream_buffer_count_mode) or not PySpin.IsWritable(stream_buffer_count_mode):
+            print('Unable to set Buffer Count Mode (node retrieval). Aborting...\n')
+
+        stream_buffer_count_mode_manual = PySpin.CEnumEntryPtr(stream_buffer_count_mode.GetEntryByName('Manual'))
+        if not PySpin.IsAvailable(stream_buffer_count_mode_manual) or not PySpin.IsReadable(stream_buffer_count_mode_manual):
+            print('Unable to set Buffer Count Mode entry (Entry retrieval). Aborting...\n')
+
+        stream_buffer_count_mode.SetIntValue(stream_buffer_count_mode_manual.GetValue())
+        print('Stream Buffer Count Mode set to manual...')
+
+        # Retrieve and modify Stream Buffer Count
+        buffer_count = PySpin.CIntegerPtr(s_node_map.GetNode('StreamBufferCountManual'))
+        if not PySpin.IsAvailable(buffer_count) or not PySpin.IsWritable(buffer_count):
+            print('Unable to set Buffer Count (Integer node retrieval). Aborting...\n')
+
+        # Display Buffer Info
+        print('\nDefault Buffer Handling Mode: %s' % handling_mode_entry.GetDisplayName())
+        print('Default Buffer Count: %d' % buffer_count.GetValue())
+        print('Maximum Buffer Count: %d' % buffer_count.GetMax())
+
+        handling_mode_entry = handling_mode.GetEntryByName('OldestFirstOverwrite')
+        handling_mode.SetIntValue(handling_mode_entry.GetValue())
+        
+        buffer_count.SetValue(4)
+
+        print('Buffer count now set to: %d' % buffer_count.GetValue())
+        print('Now Buffer Handling Mode: %s' % handling_mode_entry.GetDisplayName())
+################################################################################################
+################This block defines all camera parameters and constants##########################
+ 
+        self.key = "q"
+        self.cam_fps=200
+        camera.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
+#        camera.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
+#        exposure_time_to_set = 2000
+#        camera.ExposureTime.SetValue(exposure_time_to_set)
+        camera.AdcBitDepth.SetValue(PySpin.AdcBitDepth_Bit10)
+        camera.PixelFormat.SetValue(PySpin.PixelFormat_BGR8)
+        camera.Width.SetValue(640)
+        camera.Height.SetValue(480)
+        camera.AasRoiEnable.SetValue(True)
+        camera.OffsetX.SetValue(40)
+        camera.OffsetY.SetValue(30)
+        camera.AcquisitionFrameRateEnable.SetValue(True)
+        camera.AcquisitionFrameRate.SetValue(self.cam_fps)
+        w = camera.Width.GetValue()
+        h = camera.Height.GetValue()
+###################################################################################################
+##########This is the beginning of the streamloaders Init##########################################     
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
-            if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
-                # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            if s == 0 and (is_colab() or is_kaggle()):
-                raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
-                                          "Try running 'source=0' in a local environment.")
-            cap = cv2.VideoCapture(s)
-            if not cap.isOpened():
-                raise ConnectionError(f'{st}Failed to open {s}')
-            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = cap.get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-            self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
-            self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
-
-            success, self.imgs[i] = cap.read()  # guarantee first frame
-            if not success or self.imgs[i] is None:
-                raise ConnectionError(f'{st}Failed to read images from {s}')
-            self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-            LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
+            self.fps = float(camera.AcquisitionFrameRate())
+            self.frames[i] = max(int(camera.AcquisitionFrameCount.GetValue()), 0) or float('inf')  # infinite stream fallback
+            self.imgs[i] = np.random.rand(480, 640, 3)
+            camera.BeginAcquisition()
+            print(self.imgs[i].shape)
+            self.threads[i] = Thread(target=self.update, args=([i, s, camera]), daemon = True)
+            LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.cam_fps:.2f} FPS)')
             self.threads[i].start()
         LOGGER.info('')  # newline
 
         # Check for common shapes
         self.bs = self.__len__()
 
-    def update(self, i, cap, stream):
+    def update(self, i, s, camera):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        while cap.isOpened() and n < f:
-            n += 1
-            cap.grab()  # .read() = .grab() followed by .retrieve()
-            if n % self.vid_stride == 0:
-                success, im = cap.retrieve()
-                if success:
-                    self.imgs[i] = im
-                else:
-                    LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                    self.imgs[i] = np.zeros_like(self.imgs[i])
-                    cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(0.0)  # wait time
+        print("MADE IT TO UPDATE")
+        while camera.IsInitialized():
+
+            FlirImage = camera.GetNextImage(1000)
+            chunk_data = FlirImage.GetChunkData().GetFrameID()
+            if chunk_data % self.vid_stride == 0:
+                self.imgs[i] = FlirImage.GetNDArray()
+                FlirImage.Release()
+                print(f'frameID is: {chunk_data}')
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
         self.count = -1
         return self
 
+
     def __next__(self):
         """Returns source paths, transformed and original images for processing YOLOv5."""
         self.count += 1
-        if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
-            cv2.destroyAllWindows()
+        if self.key != "q":
+            camera.EndAcquisition()
+            print(camera.IsInitialized())
+            camera.DeInit()
+            del camera
+            cam_list = self.system.GetCameras()
+            cam_list.Clear()
+            self.system.ReleaseInstance()      
             raise StopIteration
-
         im0 = self.imgs.copy()
         return self.sources, im0, None, ''
 
