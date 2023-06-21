@@ -1,8 +1,8 @@
 <div align="center">
 <h1>  
-  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠⚠⚠⚠⚠⚠  
+   
   ⚠️⚠️⚠️Work in progress - setup and detail on use to come⚠️⚠️⚠️
-  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠
+
 </h1>
   <p>
     <a href="https://ultralytics.com/yolov8" target="_blank">
