@@ -267,7 +267,7 @@ class BasePredictor:
                 if self.args.show and self.plotted_img is not None:
                     self.show(p)
                 if self.args.save and self.plotted_img is not None:
-                    self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                    self.save_preds(vid_cap, i, str(self.save_dir / p.name))#, fps)
 
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
@@ -317,7 +317,7 @@ class BasePredictor:
         cv2.imshow(str(p), im0)
         cv2.waitKey(500 if self.batch[3].startswith('image') else 1)  # 1 millisecond
 
-    def save_preds(self, vid_cap, idx, save_path):
+    def save_preds(self, vid_cap, idx, save_path): #, fps):
         """Save video predictions as mp4 at specified path."""
         im0 = self.plotted_img
         # Save imgs
@@ -334,6 +334,7 @@ class BasePredictor:
                     h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
+                    fps = 25
                 save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
             self.vid_writer[idx].write(im0)
