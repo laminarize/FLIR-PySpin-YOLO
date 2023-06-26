@@ -51,8 +51,10 @@ Environment requirements outside of Ultralytics YOLO:
 <p align="center">
    
 ```bash
+<pre align="center">
 #Now install Ultralytics
 pip install ultralytics
+</pre>
 ```
    
 ```bash
