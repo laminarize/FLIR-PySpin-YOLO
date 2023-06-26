@@ -79,18 +79,21 @@ YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` co
 </div>
 
 <p align="center">
-
 ```bash
 #Change directory to the yolo folder within the Ultralytics site-package
 yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4
-```
+```</p>
 
-</p>
-
-<div align="left">
-
-#### Remaining GitHub content directly from Ultralytics GitHub:
-
+<div align="center">
+<table>
+<tbody>
+<td align="center">
+<img width="2000" height="0"><br>
+<sub>Remaining GitHub content directly from Ultralytics GitHub:</sub><br>
+<img width="2000" height="0">
+</td>
+</tbody>
+</table>
 </div>
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8 [CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
