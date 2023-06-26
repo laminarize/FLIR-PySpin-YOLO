@@ -53,7 +53,9 @@ Environment requirements outside of Ultralytics YOLO:
 pip install ultralytics
 ```
 
-<br>
+</div>
+
+<div align="center">
    
 ```bash
 #Change directory to install location of Ultralytics folder - Depending on operating system, but generally "...Python\Python38\Lib\site-#packages\ultralytics"
