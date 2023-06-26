@@ -71,11 +71,14 @@ git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command. Source 0 has been redirected to stream FLIR camers using the SPinnaker SDK. The vid_stride argument has been converted to use a Spinnaker camerea object metadata vs openCV:
 
 </div>
+<div align="center">
 
 ```bash
 #Change directory to the yolo folder within the Ultralytics site-package
 yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4
 ```
+
+</div>
 
 <div align="left">
 
@@ -92,6 +95,7 @@ yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4
 YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
 
 </div>
+<div align="center">
 
 ```python
 from ultralytics import YOLO
