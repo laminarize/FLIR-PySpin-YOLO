@@ -9,6 +9,7 @@ from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
 
+import pandas as pd
 import cv2
 import numpy as np
 import requests
@@ -18,6 +19,10 @@ from PIL import Image
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import LOGGER, ROOT, is_colab, is_kaggle, ops
 from ultralytics.yolo.utils.checks import check_requirements
+
+import PySpin
+import tkinter
+from tkinter import messagebox
 
 
 @dataclass
@@ -40,6 +45,14 @@ class LoadStreams:
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
+
+#        self.parent = tkinter.Tk() # Create the object
+#        parent.overrideredirect(1) # Avoid it appearing and then disappearing quickly
+#        self.string_value = simpledialog.askstring('Quit Inference', 'Enter "quit" to exit inference', parent=parent)
+#        parent.withdraw() # Hide the window as we do not want to see this one
+
+#        self.yesnocancel = messagebox.askyesnocancel('Question Title', 'Are you sure you want to undo?', parent=parent) # Yes / No / Cancel
+
 ################################################################################################
         self.system = PySpin.System.GetInstance()
         camera = self.system.GetCameras()[0]
@@ -179,7 +192,16 @@ class LoadStreams:
     def update(self, i, s, camera):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        while camera.IsInitialized():         
+#        self.yesnocancel = messagebox.askyesnocancel('Question Title', 'Are you sure you want to undo?', parent=self.parent) # Yes / No / Cancel
+        while camera.IsInitialized():
+#            if self.yesnocancel== False:
+#                camera.EndAcquisition()
+#                camera.DeInit()
+#                del camera
+#                cam_list = self.system.GetCameras()
+#                cam_list.Clear()
+#                self.system.ReleaseInstance()      
+#                raise StopIteration            
             FlirImage = camera.GetNextImage(1000)
             chunk_data = FlirImage.GetChunkData().GetFrameID()
             if chunk_data % self.vid_stride == 0:
@@ -205,7 +227,8 @@ class LoadStreams:
 #            self.system.ReleaseInstance()      
 #            raise StopIteration
         im0 = self.imgs.copy()
-        return self.sources, im0, None, ''
+#        fps = int(self.fps/self.vid_stride)
+        return self.sources, im0, None, ''#, fps
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -262,7 +285,7 @@ class LoadImages:
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
-            p = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
+            p = str(Path(p).resolve())
             if '*' in p:
                 files.extend(sorted(glob.glob(p, recursive=True)))  # glob
             elif os.path.isdir(p):
@@ -440,35 +463,6 @@ def autocast_list(source):
 
 
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
-
-
-def get_best_youtube_url(url, use_pafy=True):
-    """
-    Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
-
-    This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
-    quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.
-
-    Args:
-        url (str): The URL of the YouTube video.
-        use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
-
-    Returns:
-        (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
-    """
-    if use_pafy:
-        check_requirements(('pafy', 'youtube_dl==2020.12.2'))
-        import pafy  # noqa
-        return pafy.new(url).getbest(preftype='mp4').url
-    else:
-        check_requirements('yt-dlp')
-        import yt_dlp
-        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
-            info_dict = ydl.extract_info(url, download=False)  # extract info
-        for f in info_dict.get('formats', None):
-            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
-                return f.get('url', None)
-
 
 if __name__ == '__main__':
     img = cv2.imread(str(ROOT / 'assets/bus.jpg'))
