@@ -52,6 +52,7 @@ Environment requirements outside of Ultralytics YOLO:
 #Now install Ultralytics
 pip install ultralytics
 ```
+
 </div>
 
 <div align="center">
