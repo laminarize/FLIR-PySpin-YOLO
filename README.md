@@ -43,6 +43,7 @@ Environment requirements outside of Ultralytics YOLO:
    2. [**CUDA Toolkit==11.8**](https://developer.nvidia.com/cuda-11-8-0-download-archive)
    3. [**PyTorch>=2.0**](https://pytorch.org/get-started/locally/)
    4. [**Spinnaker SDK == Python38**](https://www.flir.com/products/spinnaker-sdk/?vertical=machine+vision&segment=iis)
+
 </div>
 
 ```bash
@@ -71,6 +72,7 @@ git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command. Source 0 has been redirected to stream FLIR camers using the SPinnaker SDK. The vid_stride argument has been converted to use a Spinnaker camerea object metadata vs openCV:
 
 </div>
+
 <div align="center">
 
 ```bash
