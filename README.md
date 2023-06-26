@@ -49,7 +49,8 @@ Environment requirements outside of Ultralytics YOLO:
 
 <div align="center">
 <p align="center">
-   
+
+```markdown
 ```bash
 <pre align="center">
 #Now install Ultralytics
