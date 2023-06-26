@@ -62,6 +62,7 @@ pip install ultralytics
 #Using Git bash overwrite contents of the site-package ultralytics folder with the repo in this Github
 git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 ```
+
 </div>
 
 </details>
