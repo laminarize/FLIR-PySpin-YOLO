@@ -36,7 +36,7 @@ See below for installation and usage for Spinnaker YOLO example, and see the [YO
 <details open>
 <summary>Install</summary>
 
-<p align="left">
+<div align="left">
 
 Environment requirements outside of Ultralytics YOLO:
    1. [**Python==3.8.10**](https://www.python.org/downloads/release/python-3810/)
@@ -44,7 +44,7 @@ Environment requirements outside of Ultralytics YOLO:
    3. [**PyTorch>=2.0**](https://pytorch.org/get-started/locally/)
    4. [**Spinnaker SDK == Python38**](https://www.flir.com/products/spinnaker-sdk/?vertical=machine+vision&segment=iis)
 
-</p>
+</div>
 
 <p align="center">
    
