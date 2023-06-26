@@ -59,7 +59,7 @@ pip install ultralytics
 ```bash
 #Change directory to install location of Ultralytics folder - Depending on operating system, but generally "...Python\Python38\Lib\site-#packages\ultralytics"
 #Using Git bash overwrite contents of the site-package ultralytics folder with the repo in this Github
-git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
+git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO/tree/9d86c143f3dc3f22119d621fe3f861e0149cb8f2/ultralytics
 ```
 
 </div>
