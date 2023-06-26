@@ -13,7 +13,7 @@
      <br>
   </p>
 
-<div align="left">
+<p align="left">
 
 FLIR cameras are the go-to choice for high-performance imaging. They offer a wide range of features that span from high speed, high resolution, and thermal imaging. YOLO is the leading computer vision algorithm. It is fast, accurate, and well supported. When these two technologies are combined they create a powerful and versatile tool for almost any CV application.
 
@@ -23,7 +23,7 @@ I am proud to be able to share with the community my GitHub fork of the YOLOv8 r
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
-</div>
+</p>
 
 ## <div align="center">Documentation</div>
 
@@ -36,7 +36,7 @@ See below for installation and usage for Spinnaker YOLO example, and see the [YO
 <details open>
 <summary>Install</summary>
 
-<div align="left">
+<p align="left">
 
 Environment requirements outside of Ultralytics YOLO:
    1. [**Python==3.8.10**](https://www.python.org/downloads/release/python-3810/)
@@ -44,18 +44,18 @@ Environment requirements outside of Ultralytics YOLO:
    3. [**PyTorch>=2.0**](https://pytorch.org/get-started/locally/)
    4. [**Spinnaker SDK == Python38**](https://www.flir.com/products/spinnaker-sdk/?vertical=machine+vision&segment=iis)
 
-</div>
+</p>
 
-<div align="center">
+<p align="center">
    
 ```bash
 #Now install Ultralytics
 pip install ultralytics
 ```
 
-</div>
+</p>
 
-<div align="center">
+<p align="center">
    
 ```bash
 #Change directory to install location of Ultralytics folder - Depending on operating system, but generally "...Python\Python38\Lib\site-#packages\ultralytics"
@@ -63,7 +63,7 @@ pip install ultralytics
 git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 ```
 
-</div>
+</p>
 
 </details>
 
@@ -78,14 +78,14 @@ YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` co
 
 </div>
 
-<div align="center">
+<p align="center">
 
 ```bash
 #Change directory to the yolo folder within the Ultralytics site-package
 yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4
 ```
 
-</div>
+</p>
 
 <div align="left">
 
