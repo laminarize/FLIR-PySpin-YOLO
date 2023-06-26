@@ -45,6 +45,7 @@ Environment requirements outside of Ultralytics YOLO:
    4. [**Spinnaker SDK == Python38**](https://www.flir.com/products/spinnaker-sdk/?vertical=machine+vision&segment=iis)
 
 </div>
+<br>
 
 <div align="center">
 <p align="center">
