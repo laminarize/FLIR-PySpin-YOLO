@@ -47,6 +47,7 @@ Environment requirements outside of Ultralytics YOLO:
 </div>
 
 <div align="center">
+<p align="center">
    
 ```bash
 #Now install Ultralytics
@@ -59,6 +60,7 @@ pip install ultralytics
 git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 ```
 
+</p>
 </div>
 
 </details>
