@@ -52,10 +52,6 @@ Environment requirements outside of Ultralytics YOLO:
 #Now install Ultralytics
 pip install ultralytics
 ```
-
-</div>
-
-<p align="center">
    
 ```bash
 #Change directory to install location of Ultralytics folder - Depending on operating system, but generally "...Python\Python38\Lib\site-#packages\ultralytics"
@@ -63,7 +59,7 @@ pip install ultralytics
 git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 ```
 
-</p>
+</div>
 
 </details>
 
