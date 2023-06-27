@@ -35,12 +35,13 @@ class SourceTypes:
 
 class LoadStreams:
     # YOLOv8 streamloader
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, spectrum='visible'):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
+        self.spectrum = spectrum
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
@@ -152,24 +153,26 @@ class LoadStreams:
         print('Now Buffer Handling Mode: %s' % handling_mode_entry.GetDisplayName())
 ################################################################################################
 ################This block defines all camera parameters and constants##########################
- 
-        self.key = "q"
-        self.cam_fps=200
-        camera.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
-#        camera.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
-#        exposure_time_to_set = 2000
-#        camera.ExposureTime.SetValue(exposure_time_to_set)
-        camera.AdcBitDepth.SetValue(PySpin.AdcBitDepth_Bit10)
-        camera.PixelFormat.SetValue(PySpin.PixelFormat_BGR8)
-        camera.Width.SetValue(640)
-        camera.Height.SetValue(480)
-        camera.AasRoiEnable.SetValue(True)
-        camera.OffsetX.SetValue(40)
-        camera.OffsetY.SetValue(30)
-        camera.AcquisitionFrameRateEnable.SetValue(True)
-        camera.AcquisitionFrameRate.SetValue(self.cam_fps)
-        w = camera.Width.GetValue()
-        h = camera.Height.GetValue()
+        if self.spectrum == 'visible':
+            self.key = "q"
+            self.cam_fps=200
+            camera.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
+    #        camera.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
+    #        exposure_time_to_set = 2000
+    #        camera.ExposureTime.SetValue(exposure_time_to_set)
+            camera.AdcBitDepth.SetValue(PySpin.AdcBitDepth_Bit10)
+            camera.PixelFormat.SetValue(PySpin.PixelFormat_BGR8)
+            camera.Width.SetValue(640)
+            camera.Height.SetValue(480)
+            camera.AasRoiEnable.SetValue(True)
+            camera.OffsetX.SetValue(40)
+            camera.OffsetY.SetValue(30)
+            camera.AcquisitionFrameRateEnable.SetValue(True)
+            camera.AcquisitionFrameRate.SetValue(self.cam_fps)
+            w = camera.Width.GetValue()
+            h = camera.Height.GetValue()
+        if self.spectrum == 'thermal':
+            camera.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
 ###################################################################################################
 ##########This is the beginning of the streamloaders Init##########################################     
         for i, s in enumerate(sources):  # index, source
