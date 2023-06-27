@@ -335,7 +335,7 @@ class BasePredictor:
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
 #                    fps = 50
-                save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
+                save_path = str(Path(save_path).with_suffix('.mkv'))  # force *.mkv suffix on results videos - for Ubuntu support
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
             self.vid_writer[idx].write(im0)
 
