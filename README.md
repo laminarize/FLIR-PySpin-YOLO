@@ -55,11 +55,23 @@ pip install ultralytics
 ```
 
 <br>
-   
+
 ```bash
-#Change directory to install location of Ultralytics folder - Depending on operating system, but generally "...Python\Python38\Lib\site-#packages\ultralytics"
-#Using Git bash overwrite contents of the site-package ultralytics folder with the repo in this Github
-git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO/tree/9d86c143f3dc3f22119d621fe3f861e0149cb8f2/ultralytics
+#Change directory to downloads folder
+cd ~/Downloads
+```
+
+```bash
+#Clone this repo that contains the FLIR compatible files
+git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
+```
+
+Change directory in terminal to your Python Site Packages folder which will contain the Ultralytics folder. - Depending on operating system, but generally "...Python\Python38\Lib\site-#packages\ultralytics"
+
+```bash
+#Once you have changed your working directory to your Python Site Packages path folder - Delete Ultralytics folder that was installed in the Site #Packages folder from the pip install yolo then copy GitHub cloned Ultralytics folder
+rm -r ./Ultralytics
+cp -r ~/Downloads/FLIR-Spinnaker-YOLO/Ultralytics ./
 ```
 
 </div>
@@ -81,7 +93,7 @@ YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` co
    
 ```bash
 #Change directory to the yolo folder within the Ultralytics site-package
-yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4
+yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4 spectrum='visible'
 ```
 
 </p>
