@@ -92,6 +92,7 @@ class BasePredictor:
             self.args.show = check_imshow(warn=True)
 
         # Usable if setup is done
+#        self.args.spectrum = None
         self.model = None
         self.data = self.args.data  # data_dict
         self.imgsz = None
@@ -335,7 +336,7 @@ class BasePredictor:
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
 #                    fps = 50
-                save_path = str(Path(save_path).with_suffix('.mkv'))  # force *.mkv suffix on results videos - for Ubuntu support
+                save_path = str(Path(save_path).with_suffix('.mkv'))  # force *.mp4 suffix on results videos
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
             self.vid_writer[idx].write(im0)
 
