@@ -13,7 +13,7 @@
      <br>
   </p>
 
-<p align="left">
+<dir align="left">
 
 FLIR cameras are the go-to choice for high-performance imaging. They offer a wide range of features that span from high speed, high resolution, and thermal imaging. YOLO is the leading computer vision algorithm. It is fast, accurate, and well supported. When these two technologies are combined they create a powerful and versatile tool for almost any CV application.
 
@@ -23,7 +23,7 @@ I am proud to be able to share with the community my GitHub fork of the YOLOv8 r
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
-</p>
+</dir>
 
 ## <div align="center">Documentation</div>
 
