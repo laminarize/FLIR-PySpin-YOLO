@@ -113,7 +113,7 @@ yolo predict model=yolov8n.pt source=0 show=True save=False vid_stride=4 spectru
 YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
 
 </div>
-<div align="center">
+<div align="left">
 
 ```python
 from ultralytics import YOLO
