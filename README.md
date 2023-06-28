@@ -47,7 +47,7 @@ Environment requirements outside of Ultralytics YOLO:
 </div>
 <br>
 
-<div align="center">
+<div align="left">
    
 ```bash
 #Now install Ultralytics
