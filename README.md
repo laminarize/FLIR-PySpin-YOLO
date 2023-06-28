@@ -67,7 +67,7 @@ git clone https://github.com/laminarize/FLIR-Spinnaker-YOLO.git
 Change directory in terminal to your Python Site Packages folder which will contain the Ultralytics folder. - Depending on operating system, but generally "...Python\Python38\Lib\site-packages\ultralytics"
 
 ```bash
-#Once you have changed your working directory to your Python Site Packages path folder - Delete Ultralytics folder that was installed in the Site #Packages folder from the pip install yolo then copy GitHub cloned Ultralytics folder
+#Once you have changed your working directory to your Python Site Packages path folder - Delete Ultralytics folder that was installed in the Site-Packages folder from the "pip install ultralytics" command, then copy GitHub cloned Ultralytics folder
 rm -r ./Ultralytics
 cp -r ~/Downloads/FLIR-Spinnaker-YOLO/Ultralytics ./
 ```
