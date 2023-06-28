@@ -13,7 +13,7 @@
      <br>
   </p>
 
-<dir align="left">
+<dir align="center">
 
 FLIR cameras are the go-to choice for high-performance imaging. They offer a wide range of features that span from high speed, high resolution, and thermal imaging. YOLO is the leading computer vision algorithm. It is fast, accurate, and well supported. When these two technologies are combined they create a powerful and versatile tool for almost any CV application.
 
