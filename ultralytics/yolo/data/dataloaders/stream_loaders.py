@@ -35,7 +35,7 @@ class SourceTypes:
 
 class LoadStreams:
     # YOLOv8 streamloader
-    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, spectrum='visible'):
+    def __init__(self, sources='file.streams', imgsz=640, vid_stride=1, spectrum=None):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
@@ -56,7 +56,9 @@ class LoadStreams:
 
 ################################################################################################
         self.system = PySpin.System.GetInstance()
-        camera = self.system.GetCameras()[0]
+        cam_list = self.system.GetCameras()
+        camera = cam_list[0]
+#        camera = cam_list.GetBySerial('M0000616')
         #Initiate camera object
         camera.Init()
 
@@ -67,49 +69,49 @@ class LoadStreams:
         nodemap = camera.GetNodeMap()
 ################################################################################################
 ################This block activates chunk mode which will be used to grab framecount metadata##
+        if self.spectrum == 'visible':
+            chunk_mode_active = PySpin.CBooleanPtr(nodemap.GetNode('ChunkModeActive'))
 
-        chunk_mode_active = PySpin.CBooleanPtr(nodemap.GetNode('ChunkModeActive'))
+            if PySpin.IsWritable(chunk_mode_active):
+                chunk_mode_active.SetValue(True)
 
-        if PySpin.IsWritable(chunk_mode_active):
-            chunk_mode_active.SetValue(True)
+            print('Chunk mode activated...')
 
-        print('Chunk mode activated...')
+            # Enable all types of chunk data
+            chunk_selector = PySpin.CEnumerationPtr(nodemap.GetNode('ChunkSelector'))
 
-        # Enable all types of chunk data
-        chunk_selector = PySpin.CEnumerationPtr(nodemap.GetNode('ChunkSelector'))
+            if not PySpin.IsReadable(chunk_selector) or not PySpin.IsWritable(chunk_selector):
+                print('Unable to retrieve chunk selector. Aborting...\n')
+                return False
 
-        if not PySpin.IsReadable(chunk_selector) or not PySpin.IsWritable(chunk_selector):
-            print('Unable to retrieve chunk selector. Aborting...\n')
-            return False
+            # Retrieve entries
+            entries = [PySpin.CEnumEntryPtr(chunk_selector_entry) for chunk_selector_entry in chunk_selector.GetEntries()]
 
-        # Retrieve entries
-        entries = [PySpin.CEnumEntryPtr(chunk_selector_entry) for chunk_selector_entry in chunk_selector.GetEntries()]
+            print('Enabling entries...')
 
-        print('Enabling entries...')
+            # Iterate through our list and select each entry node to enable
+            for chunk_selector_entry in entries:
+                # Go to next node if problem occurs
+                if not PySpin.IsReadable(chunk_selector_entry):
+                    continue
 
-        # Iterate through our list and select each entry node to enable
-        for chunk_selector_entry in entries:
-            # Go to next node if problem occurs
-            if not PySpin.IsReadable(chunk_selector_entry):
-                continue
+                chunk_selector.SetIntValue(chunk_selector_entry.GetValue())
 
-            chunk_selector.SetIntValue(chunk_selector_entry.GetValue())
+                chunk_str = '\t {}:'.format(chunk_selector_entry.GetSymbolic())
 
-            chunk_str = '\t {}:'.format(chunk_selector_entry.GetSymbolic())
+                # Retrieve corresponding boolean
+                chunk_enable = PySpin.CBooleanPtr(nodemap.GetNode('ChunkEnable'))
 
-            # Retrieve corresponding boolean
-            chunk_enable = PySpin.CBooleanPtr(nodemap.GetNode('ChunkEnable'))
-
-            # Enable the boolean, thus enabling the corresponding chunk data
-            if not PySpin.IsAvailable(chunk_enable):
-                print('{} not available'.format(chunk_str))
-            elif chunk_enable.GetValue() is True:
-                print('{} enabled'.format(chunk_str))
-            elif PySpin.IsWritable(chunk_enable):
-                chunk_enable.SetValue(True)
-                print('{} enabled'.format(chunk_str))
-            else:
-                print('{} not writable'.format(chunk_str))
+                # Enable the boolean, thus enabling the corresponding chunk data
+                if not PySpin.IsAvailable(chunk_enable):
+                    print('{} not available'.format(chunk_str))
+                elif chunk_enable.GetValue() is True:
+                    print('{} enabled'.format(chunk_str))
+                elif PySpin.IsWritable(chunk_enable):
+                    chunk_enable.SetValue(True)
+                    print('{} enabled'.format(chunk_str))
+                else:
+                    print('{} not writable'.format(chunk_str))
 ##############################################################################################
 #########This block manually configures buffer handling#######################################
 
@@ -144,17 +146,17 @@ class LoadStreams:
         print('Default Buffer Count: %d' % buffer_count.GetValue())
         print('Maximum Buffer Count: %d' % buffer_count.GetMax())
 
-        handling_mode_entry = handling_mode.GetEntryByName('OldestFirstOverwrite')
+        handling_mode_entry = handling_mode.GetEntryByName('NewestOnly')
         handling_mode.SetIntValue(handling_mode_entry.GetValue())
         
-        buffer_count.SetValue(4)
+        buffer_count.SetValue(3)
 
         print('Buffer count now set to: %d' % buffer_count.GetValue())
         print('Now Buffer Handling Mode: %s' % handling_mode_entry.GetDisplayName())
 ################################################################################################
 ################This block defines all camera parameters and constants##########################
         if self.spectrum == 'visible':
-            self.key = "q"
+#            self.key = "q"
             self.cam_fps=200
             camera.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
     #        camera.ExposureAuto.SetValue(PySpin.ExposureAuto_Off)
@@ -169,20 +171,29 @@ class LoadStreams:
             camera.OffsetY.SetValue(30)
             camera.AcquisitionFrameRateEnable.SetValue(True)
             camera.AcquisitionFrameRate.SetValue(self.cam_fps)
-            w = camera.Width.GetValue()
-            h = camera.Height.GetValue()
         if self.spectrum == 'thermal':
-            camera.AcquisitionMode.SetValue(PySpin.AcquisitionMode_Continuous)
+            node_acquisition_mode = PySpin.CEnumerationPtr(nodemap.GetNode('AcquisitionMode'))
+            node_acquisition_mode_continuous = node_acquisition_mode.GetEntryByName('Continuous')
+            acquisition_mode_continuous = node_acquisition_mode_continuous.GetValue()
+            node_acquisition_mode.SetIntValue(acquisition_mode_continuous)
+            self.cam_fps = float(camera.AcquisitionFrameRate())
+        w = camera.Width.GetValue()
+        h = camera.Height.GetValue()
 ###################################################################################################
 ##########This is the beginning of the streamloaders Init##########################################     
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            self.fps = float(camera.AcquisitionFrameRate())
+#            self.fps = float(camera.AcquisitionFrameRate())
             self.frames[i] = max(int(camera.AcquisitionFrameCount.GetValue()), 0) or float('inf')  # infinite stream fallback
             self.imgs[i] = np.random.rand(480, 640, 3)
             camera.BeginAcquisition()
+            if self.spectrum == 'visible':
+                self.cam_fps = self.cam_fps
+            if self.spectrum == 'thermal':
+                self.cam_fps = float(camera.AcquisitionFrameRate())
+            self.fps = float(camera.AcquisitionFrameRate())
             print(self.imgs[i].shape)
             self.threads[i] = Thread(target=self.update, args=([i, s, camera]), daemon = True)
             LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.cam_fps:.2f} FPS)')
@@ -205,12 +216,15 @@ class LoadStreams:
 #                cam_list.Clear()
 #                self.system.ReleaseInstance()      
 #                raise StopIteration            
-            FlirImage = camera.GetNextImage(1000)
+            FlirImage = camera.GetNextImage(5000)
             chunk_data = FlirImage.GetChunkData().GetFrameID()
             if chunk_data % self.vid_stride == 0:
                 self.imgs[i] = FlirImage.GetNDArray()
+                if self.spectrum == 'thermal':
+                    self.imgs[i] = cv2.cvtColor(self.imgs[i],cv2.COLOR_GRAY2RGB)
                 FlirImage.Release()
                 print(f'frameID is: {chunk_data}')
+                print(f'spectrum arguement is: {self.spectrum}')
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
