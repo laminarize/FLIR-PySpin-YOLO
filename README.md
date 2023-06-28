@@ -54,8 +54,6 @@ Environment requirements outside of Ultralytics YOLO:
 pip install ultralytics
 ```
 
-<br>
-
 ```bash
 #Change directory to downloads folder
 cd ~/Downloads
