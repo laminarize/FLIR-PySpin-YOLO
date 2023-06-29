@@ -58,7 +58,6 @@ class LoadStreams:
         self.system = PySpin.System.GetInstance()
         cam_list = self.system.GetCameras()
         camera = cam_list[0]
-#        camera = cam_list.GetBySerial('M0000616')
         #Initiate camera object
         camera.Init()
 
@@ -112,6 +111,14 @@ class LoadStreams:
                     print('{} enabled'.format(chunk_str))
                 else:
                     print('{} not writable'.format(chunk_str))
+        if self.spectrum == 'thermal':
+            camera.ChunkModeActive.SetValue(True)
+##            camera.GevSupportedOptionSelector.SetValue(True)
+#            print(f' Gev chunk set: {camera.ChunkModeActive.SetValue()}')
+#            print(f' Gev chunk set: {camera.GevSCCFGExtendedChunkData.GetValue()}')
+#            self.chunk_data = self.PySpin.ChunkSelector_FrameID
+#            self.chunk_data = PySpin.CEnumerationPtr(self.nodemap.GetNode('GetFrameID'))
+#            print(f'frame ID is: {self.chunk_data}')
 ##############################################################################################
 #########This block manually configures buffer handling#######################################
 
@@ -175,7 +182,8 @@ class LoadStreams:
             node_acquisition_mode = PySpin.CEnumerationPtr(nodemap.GetNode('AcquisitionMode'))
             node_acquisition_mode_continuous = node_acquisition_mode.GetEntryByName('Continuous')
             acquisition_mode_continuous = node_acquisition_mode_continuous.GetValue()
-            node_acquisition_mode.SetIntValue(acquisition_mode_continuous)
+            if node_acquisition_mode_continuous != 0:
+                node_acquisition_mode.SetIntValue(acquisition_mode_continuous)
             self.cam_fps = float(camera.AcquisitionFrameRate())
         w = camera.Width.GetValue()
         h = camera.Height.GetValue()
@@ -185,14 +193,10 @@ class LoadStreams:
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-#            self.fps = float(camera.AcquisitionFrameRate())
+            self.fps = float(camera.AcquisitionFrameRate())
             self.frames[i] = max(int(camera.AcquisitionFrameCount.GetValue()), 0) or float('inf')  # infinite stream fallback
             self.imgs[i] = np.random.rand(480, 640, 3)
             camera.BeginAcquisition()
-            if self.spectrum == 'visible':
-                self.cam_fps = self.cam_fps
-            if self.spectrum == 'thermal':
-                self.cam_fps = float(camera.AcquisitionFrameRate())
             self.fps = float(camera.AcquisitionFrameRate())
             print(self.imgs[i].shape)
             self.threads[i] = Thread(target=self.update, args=([i, s, camera]), daemon = True)
@@ -218,13 +222,26 @@ class LoadStreams:
 #                raise StopIteration            
             FlirImage = camera.GetNextImage(5000)
             chunk_data = FlirImage.GetChunkData().GetFrameID()
+#            cv2.imshow("AI", FlirImage)
+#            cv2.waitKey(1)
+#            chunk_data = self.PySpin.ChunkData.GetFrameID
+#            print(f'frame ID is: {chunk_data}')
+###            chunk_data = PySpin.ChunkSelector_FrameID
+#            PySpin.CValuePtr(node).Get
+#            chunk_data = self.PySpin.CValuePtr(self.nodemap.GetNode('GetFrameID'))
+#            chunk_data = self.PySpin.CEnumerationPtr(self.nodemap('GetFrameID').GetValue())
+#            chunk_data = self.nodemap.FrameID()
+#            chunk_data_value = chunk_data.GetValue()
+###            print(f'frame ID is: {chunk_data}')
+
             if chunk_data % self.vid_stride == 0:
-                self.imgs[i] = FlirImage.GetNDArray()
+                if self.spectrum == 'visible':
+                    self.imgs[i] = FlirImage.GetNDArray()
                 if self.spectrum == 'thermal':
-                    self.imgs[i] = cv2.cvtColor(self.imgs[i],cv2.COLOR_GRAY2RGB)
+                    self.imgs[i] = cv2.cvtColor(FlirImage.GetNDArray(),cv2.COLOR_GRAY2RGB)
                 FlirImage.Release()
                 print(f'frameID is: {chunk_data}')
-                print(f'spectrum arguement is: {self.spectrum}')
+#                print(f'spectrum arguement is: {self.spectrum}')
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
