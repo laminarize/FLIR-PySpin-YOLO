@@ -34,7 +34,6 @@ def main():
         if result.boxes.id is not None:
             detections.tracker_id = result.boxes.id.cpu().numpy().astype(int)
         
-        detections = detections[detections.class_id == 0]
         labels = [
             f" #{tracker_id} {model.model.names[class_id]} {confidence:0.2f}"
             for _, _, confidence, class_id, tracker_id
