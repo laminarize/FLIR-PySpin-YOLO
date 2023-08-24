@@ -13,7 +13,7 @@ import PySpin
 
 START = sv.Point(320,0 )
 END = sv.Point(320, 480)
-CONNECTION_STRING = "HostName=iot-scus-mvld-nr3.azure-devices.net;DeviceId=myJetson;SharedAccessKey=wb0HD0gCPQnEcuawjzR8PLKJO845uHLj1vRuKI/GOc0="
+CONNECTION_STRING = ""
 inCount  = 0
 outCount = 0
 
